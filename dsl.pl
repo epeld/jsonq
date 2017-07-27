@@ -1,4 +1,6 @@
 
+% TODO remove the foldl on PostPoned. Not needed anymore (run_compiled_query)
+
 %
 % Top Level Interface
 %
