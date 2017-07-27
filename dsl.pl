@@ -31,6 +31,9 @@ rearrange_clauses(ClauseList, SortedList) :-
   append(Structure, Rest, SortedList).
 
 
+structure_clause(Clause) :-
+  clause(structure(Clause), _Body).
+
 %
 % Query Execution
 %
@@ -70,6 +73,13 @@ run(_Root, Pred1, _Result, PostPoned, PostPoned2) :-
 
 
 run(_Root, sought(Result), Result, PostPoned, PostPoned).
+
+% For calling whitelisted standard prolog predicates
+run(_Root, Pred, _Result, PostPoned, PostPoned) :-
+  whitelist(RealName/Arity, PredName/Arity),
+  Pred =.. [PredName | Args],
+  RealPred =.. [RealName | Args],
+  call(RealPred).
 
 
 %
