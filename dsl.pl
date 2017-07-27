@@ -1,6 +1,4 @@
 
-% TODO remove the foldl on PostPoned. Not needed anymore (run_compiled_query)
-
 %
 % Top Level Interface
 %
@@ -41,43 +39,24 @@ structure_clause(Clause) :-
 %
 
 run_compiled_query(Root, Query, Result) :-
-  foldl(run_(Root, Result), Query, [], PostPoned),
-  
-  ground(Result),
-  
-  (
-    PostPoned = [] *->
-    true
-  ;
-  format("Warning: some predicates could never be run ~w ~w~n", [Result, PostPoned])
-  ).
-
-
-% Argument flipping:
-run_(Root, Result, Predicate, P, P2) :-
-  run(Root, Predicate, Result, P, P2).
+  foreach(member(Pred, Query), run(Root, Pred, Result)),
+  ground(Result).
 
 
 % Run structure predicates
-run(Root, Pred1, _Result, PostPoned, PostPoned2) :-
-  structure(Pred1, Root),
-  partition(ground, PostPoned, Types, PostPoned2),
-  
-  % Run all postponed type predicates
-  forall(member(Type, Types), type(Type)).
+run(Root, Pred1, _Result) :-
+  structure(Pred1, Root).
 
 % Run type predicates
-run(_Root, Pred1, _Result, PostPoned, PostPoned2) :-
-  ground(Pred1) *->
-    type(Pred1), PostPoned2 = PostPoned
-  ; % Postpone the predicate because it needs to be ground first
-    clause(type(Pred1), _Body), PostPoned2 = [Pred1 | PostPoned].
+run(_Root, Pred1, _Result) :-
+  ground(Pred1), % To avoid errors
+  type(Pred1).
 
-
-run(_Root, sought(Result), Result, PostPoned, PostPoned).
+% Special 'pragma':
+run(_Root, sought(Result), Result).
 
 % For calling whitelisted standard prolog predicates
-run(_Root, Pred, _Result, PostPoned, PostPoned) :-
+run(_Root, Pred, _Result) :-
   whitelist(RealName/Arity, PredName/Arity),
   Pred =.. [PredName | Args],
   RealPred =.. [RealName | Args],
