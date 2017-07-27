@@ -1,4 +1,19 @@
 
+%
+% Top Level Interface
+%
+run_query(Root, Query, Result) :-
+  compile_query(Query, CompiledQuery),
+  run_compiled_query(Root, CompiledQuery, Result).
+
+%
+% Query Compilation
+%
+
+compile_query(CompoundTerm, Query) :-
+  clauses_to_list(CompoundTerm, ClauseList),
+  rearrange_clauses(ClauseList, Query).
+
 
 clauses_to_list(Clauses, [Clause | OtherClauses]) :-
   functor(Clauses, ',', 2),
@@ -10,9 +25,18 @@ clauses_to_list(Clauses, [Clause | OtherClauses]) :-
 clauses_to_list(Clause, [Clause]) :-
   \+ functor(Clause, ',', 2).
 
-run_query(Root, Query, Result) :-
-  clauses_to_list(Query, QueryList),
-  foldl(run_(Root, Result), QueryList, [], PostPoned),
+
+rearrange_clauses(ClauseList, SortedList) :-
+  partition(structure_clause, ClauseList, Structure, Rest),
+  append(Structure, Rest, SortedList).
+
+
+%
+% Query Execution
+%
+
+run_compiled_query(Root, Query, Result) :-
+  foldl(run_(Root, Result), Query, [], PostPoned),
   
   ground(Result),
   
