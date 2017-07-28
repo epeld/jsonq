@@ -32,14 +32,17 @@ rearrange_clauses(ClauseList, SortedList) :-
 
 
 structure_clause(Clause) :-
-  clause(structure(Clause), _Body).
+  clause(structure(Clause, _Root), _Body).
 
 %
 % Query Execution
 %
 
-run_compiled_query(Root, Query, Result) :-
-  foreach(member(Pred, Query), run(Root, Pred, Result)),
+run_compiled_query(Root, [Pred | Rest], Result) :-
+  run(Root, Pred, Result),
+  run_compiled_query(Root, Rest, Result).
+
+run_compiled_query(_Root, [], Result) :-
   ground(Result).
 
 
